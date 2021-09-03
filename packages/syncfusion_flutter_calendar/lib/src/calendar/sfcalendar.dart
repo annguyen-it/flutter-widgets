@@ -1833,6 +1833,7 @@ class SfCalendar extends StatefulWidget {
     properties.add(DiagnosticsProperty<DateTime>('minDate', minDate));
     properties.add(DiagnosticsProperty<DateTime>('maxDate', maxDate));
     properties.add(ColorProperty('backgroundColor', backgroundColor));
+    properties.add(ColorProperty('selectionBorderColor', selectionBorderColor));
     properties.add(ColorProperty('todayHighlightColor', todayHighlightColor));
     properties.add(ColorProperty('cellBorderColor', cellBorderColor));
     properties.add(DiagnosticsProperty<ViewChangedCallback>('onViewChanged', onViewChanged));
@@ -2034,7 +2035,7 @@ class _SfCalendarState extends State<SfCalendar> with SingleTickerProviderStateM
     final ThemeData themeData = Theme.of(context);
     _calendarTheme = calendarThemeData.copyWith(
         todayHighlightColor: calendarThemeData.todayHighlightColor ?? themeData.accentColor,
-        selectionBorderColor: calendarThemeData.selectionBorderColor ?? themeData.accentColor);
+        selectionBorderColor: widget.selectionBorderColor);
     //// localeOf(context) returns the locale from material app when SfCalendar locale value as null
     _locale = Localizations.localeOf(context).toString();
     _localizations = SfLocalizations.of(context);
