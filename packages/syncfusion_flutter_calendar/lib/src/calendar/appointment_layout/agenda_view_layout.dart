@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:syncfusion_flutter_core/localizations.dart';
@@ -22,15 +21,12 @@ class AgendaViewLayout extends StatefulWidget {
       this.scheduleViewSettings,
       this.selectedDate,
       this.appointments,
-      this.isRTL,
       this.locale,
       this.localizations,
       this.calendarTheme,
-      this.agendaViewNotifier,
       this.appointmentTimeTextFormat,
       this.timeLabelWidth,
       this.textScaleFactor,
-      this.isMobilePlatform,
       this.appointmentBuilder,
       this.width,
       this.height);
@@ -47,17 +43,11 @@ class AgendaViewLayout extends StatefulWidget {
   /// Holds the selected date appointment collection.
   final List<CalendarAppointment>? appointments;
 
-  /// Defines the direction of the calendar widget is RTL or not.
-  final bool isRTL;
-
   /// Defines the locale of the calendar widget
   final String locale;
 
   /// Holds the theme data of the calendar widget.
   final SfCalendarThemeData calendarTheme;
-
-  /// Holds the hovering details of the agenda view widget.
-  final ValueNotifier<ScheduleViewHoveringDetails?> agendaViewNotifier;
 
   /// Holds the localization data of the calendar widget.
   final SfLocalizations localizations;
@@ -74,9 +64,6 @@ class AgendaViewLayout extends StatefulWidget {
 
   /// Defines the scale factor of the calendar widget.
   final double textScaleFactor;
-
-  /// Defines the current platform is mobile platform or not.
-  final bool isMobilePlatform;
 
   /// Defines the width of the agenda appointment layout widget.
   final double width;
@@ -131,9 +118,7 @@ class _AgendaViewLayoutState extends State<AgendaViewLayout> {
         }
         final CalendarAppointmentDetails details = CalendarAppointmentDetails(
             widget.selectedDate!,
-            List<dynamic>.unmodifiable(<dynamic>[
-              CalendarViewHelper.getAppointmentDetail(view.appointment!)
-            ]),
+            List<dynamic>.unmodifiable(<dynamic>[CalendarViewHelper.getAppointmentDetail(view.appointment!)]),
             view.appointmentRect!.outerRect);
         final Widget child = widget.appointmentBuilder!(context, details);
         _children.add(RepaintBoundary(child: child));
@@ -145,15 +130,12 @@ class _AgendaViewLayoutState extends State<AgendaViewLayout> {
         widget.scheduleViewSettings,
         widget.selectedDate,
         widget.appointments,
-        widget.isRTL,
         widget.locale,
         widget.localizations,
         widget.calendarTheme,
-        widget.agendaViewNotifier,
         widget.appointmentTimeTextFormat,
         widget.timeLabelWidth,
         widget.textScaleFactor,
-        widget.isMobilePlatform,
         _appointmentCollection,
         widget.width,
         widget.height,
@@ -164,51 +146,32 @@ class _AgendaViewLayoutState extends State<AgendaViewLayout> {
     double yPosition = 5;
     const double padding = 5;
 
-    final double totalAgendaViewWidth = widget.width + widget.timeLabelWidth;
-    final bool useMobilePlatformUI = CalendarViewHelper.isMobileLayoutUI(
-        totalAgendaViewWidth, widget.isMobilePlatform);
     AppointmentHelper.resetAppointmentView(_appointmentCollection);
     _children.clear();
-    if (widget.selectedDate == null ||
-        widget.appointments == null ||
-        widget.appointments!.isEmpty) {
+    if (widget.selectedDate == null || widget.appointments == null || widget.appointments!.isEmpty) {
       return;
     }
 
-    final bool isLargerScheduleUI =
-        widget.scheduleViewSettings != null && !useMobilePlatformUI;
+    final bool isLargerScheduleUI = widget.scheduleViewSettings != null && false;
 
-    widget.appointments!.sort(
-        (CalendarAppointment app1, CalendarAppointment app2) =>
-            app1.actualStartTime.compareTo(app2.actualStartTime));
-    widget.appointments!.sort(
-        (CalendarAppointment app1, CalendarAppointment app2) =>
-            AppointmentHelper.orderAppointmentsAscending(
-                app1.isAllDay, app2.isAllDay));
-    widget.appointments!.sort(
-        (CalendarAppointment app1, CalendarAppointment app2) =>
-            AppointmentHelper.orderAppointmentsAscending(
-                app1.isSpanned, app2.isSpanned));
+    widget.appointments!
+        .sort((CalendarAppointment app1, CalendarAppointment app2) => app1.actualStartTime.compareTo(app2.actualStartTime));
+    widget.appointments!.sort((CalendarAppointment app1, CalendarAppointment app2) =>
+        AppointmentHelper.orderAppointmentsAscending(app1.isAllDay, app2.isAllDay));
+    widget.appointments!.sort((CalendarAppointment app1, CalendarAppointment app2) =>
+        AppointmentHelper.orderAppointmentsAscending(app1.isSpanned, app2.isSpanned));
     final double agendaItemHeight =
-        CalendarViewHelper.getScheduleAppointmentHeight(
-            widget.monthViewSettings, widget.scheduleViewSettings);
+        CalendarViewHelper.getScheduleAppointmentHeight(widget.monthViewSettings, widget.scheduleViewSettings);
     final double agendaAllDayItemHeight =
-        CalendarViewHelper.getScheduleAllDayAppointmentHeight(
-            widget.monthViewSettings, widget.scheduleViewSettings);
+        CalendarViewHelper.getScheduleAllDayAppointmentHeight(widget.monthViewSettings, widget.scheduleViewSettings);
 
     for (int i = 0; i < widget.appointments!.length; i++) {
       final CalendarAppointment appointment = widget.appointments![i];
-      final bool isSpanned =
-          appointment.actualEndTime.day != appointment.actualStartTime.day ||
-              appointment.isSpanned;
+      final bool isSpanned = appointment.actualEndTime.day != appointment.actualStartTime.day || appointment.isSpanned;
       final double appointmentHeight =
-          (appointment.isAllDay || isSpanned) && !isLargerScheduleUI
-              ? agendaAllDayItemHeight
-              : agendaItemHeight;
-      final Rect rect = Rect.fromLTWH(
-          padding, yPosition, widget.width - (2 * padding), appointmentHeight);
-      final Radius cornerRadius = Radius.circular(
-          (appointmentHeight * 0.1) > 5 ? 5 : (appointmentHeight * 0.1));
+          (appointment.isAllDay || isSpanned) && !isLargerScheduleUI ? agendaAllDayItemHeight : agendaItemHeight;
+      final Rect rect = Rect.fromLTWH(padding, yPosition, widget.width - (2 * padding), appointmentHeight);
+      final Radius cornerRadius = Radius.circular((appointmentHeight * 0.1) > 5 ? 5 : (appointmentHeight * 0.1));
       yPosition += appointmentHeight + padding;
       AppointmentView? appointmentRenderer;
       for (int i = 0; i < _appointmentCollection.length; i++) {
@@ -228,8 +191,7 @@ class _AgendaViewLayoutState extends State<AgendaViewLayout> {
 
       appointmentRenderer.canReuse = false;
       appointmentRenderer.appointment = appointment;
-      appointmentRenderer.appointmentRect =
-          RRect.fromRectAndRadius(rect, cornerRadius);
+      appointmentRenderer.appointmentRect = RRect.fromRectAndRadius(rect, cornerRadius);
     }
   }
 }
@@ -240,15 +202,12 @@ class _AgendaViewRenderWidget extends MultiChildRenderObjectWidget {
       this.scheduleViewSettings,
       this.selectedDate,
       this.appointments,
-      this.isRTL,
       this.locale,
       this.localizations,
       this.calendarTheme,
-      this.agendaViewNotifier,
       this.appointmentTimeTextFormat,
       this.timeLabelWidth,
       this.textScaleFactor,
-      this.isMobilePlatform,
       this.appointmentCollection,
       this.width,
       this.height,
@@ -259,15 +218,12 @@ class _AgendaViewRenderWidget extends MultiChildRenderObjectWidget {
   final ScheduleViewSettings? scheduleViewSettings;
   final DateTime? selectedDate;
   final List<CalendarAppointment>? appointments;
-  final bool isRTL;
   final String locale;
   final SfCalendarThemeData calendarTheme;
-  final ValueNotifier<ScheduleViewHoveringDetails?> agendaViewNotifier;
   final SfLocalizations localizations;
   final double timeLabelWidth;
   final String? appointmentTimeTextFormat;
   final double textScaleFactor;
-  final bool isMobilePlatform;
   final List<AppointmentView> appointmentCollection;
   final double width;
   final double height;
@@ -279,33 +235,27 @@ class _AgendaViewRenderWidget extends MultiChildRenderObjectWidget {
         scheduleViewSettings,
         selectedDate,
         appointments,
-        isRTL,
         locale,
         localizations,
         calendarTheme,
-        agendaViewNotifier,
         appointmentTimeTextFormat,
         timeLabelWidth,
         textScaleFactor,
-        isMobilePlatform,
         appointmentCollection,
         width,
         height);
   }
 
   @override
-  void updateRenderObject(
-      BuildContext context, _AgendaViewRenderObject renderObject) {
+  void updateRenderObject(BuildContext context, _AgendaViewRenderObject renderObject) {
     renderObject
       ..monthViewSettings = monthViewSettings
       ..scheduleViewSettings = scheduleViewSettings
       ..selectedDate = selectedDate
       ..appointments = appointments
-      ..isRTL = isRTL
       ..locale = locale
       ..localizations = localizations
       ..calendarTheme = calendarTheme
-      ..agendaViewNotifier = agendaViewNotifier
       ..appointmentTimeTextFormat = appointmentTimeTextFormat
       ..timeLabelWidth = timeLabelWidth
       ..textScaleFactor = textScaleFactor
@@ -321,20 +271,15 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
       this._scheduleViewSettings,
       this._selectedDate,
       this._appointments,
-      this._isRTL,
       this._locale,
       this._localizations,
       this._calendarTheme,
-      this._agendaViewNotifier,
       this._appointmentTimeTextFormat,
       this._timeLabelWidth,
       this._textScaleFactor,
-      this.isMobilePlatform,
       this._appointmentCollection,
       this._width,
       this._height);
-
-  final bool isMobilePlatform;
 
   double _height;
 
@@ -528,19 +473,6 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     }
   }
 
-  bool _isRTL;
-
-  bool get isRTL => _isRTL;
-
-  set isRTL(bool value) {
-    if (_isRTL == value) {
-      return;
-    }
-
-    _isRTL = value;
-    markNeedsPaint();
-  }
-
   SfCalendarThemeData _calendarTheme;
 
   SfCalendarThemeData get calendarTheme => _calendarTheme;
@@ -558,21 +490,6 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     markNeedsPaint();
   }
 
-  ValueNotifier<ScheduleViewHoveringDetails?> _agendaViewNotifier;
-
-  ValueNotifier<ScheduleViewHoveringDetails?> get agendaViewNotifier =>
-      _agendaViewNotifier;
-
-  set agendaViewNotifier(ValueNotifier<ScheduleViewHoveringDetails?> value) {
-    if (_agendaViewNotifier == value) {
-      return;
-    }
-
-    _agendaViewNotifier.removeListener(markNeedsPaint);
-    _agendaViewNotifier = value;
-    _agendaViewNotifier.addListener(markNeedsPaint);
-  }
-
   /// Caches [SemanticsNode]s created during [assembleSemanticsNode] so they
   /// can be re-used when [assembleSemanticsNode] is called again. This ensures
   /// stable ids for the [SemanticsNode]s of children across
@@ -583,20 +500,6 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
   final Paint _rectPainter = Paint();
   final TextPainter _textPainter = TextPainter();
 
-  /// attach will called when the render object rendered in view.
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _agendaViewNotifier.addListener(markNeedsPaint);
-  }
-
-  /// detach will called when the render object removed from view.
-  @override
-  void detach() {
-    _agendaViewNotifier.removeListener(markNeedsPaint);
-    super.detach();
-  }
-
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
     RenderBox? child = firstChild;
@@ -606,14 +509,11 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
 
     for (int i = 0; i < appointmentCollection.length; i++) {
       final AppointmentView appointmentView = appointmentCollection[i];
-      if (appointmentView.appointment == null ||
-          child == null ||
-          appointmentView.appointmentRect == null) {
+      if (appointmentView.appointment == null || child == null || appointmentView.appointmentRect == null) {
         continue;
       }
 
-      final Offset offset = Offset(appointmentView.appointmentRect!.left,
-          appointmentView.appointmentRect!.top);
+      final Offset offset = Offset(appointmentView.appointmentRect!.left, appointmentView.appointmentRect!.top);
       final bool isHit = result.addWithPaintOffset(
         offset: offset,
         position: position,
@@ -634,14 +534,12 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
   @override
   void performLayout() {
     final Size widgetSize = constraints.biggest;
-    size = Size(widgetSize.width.isInfinite ? width : widgetSize.width,
-        widgetSize.height.isInfinite ? height : widgetSize.height);
+    size =
+        Size(widgetSize.width.isInfinite ? width : widgetSize.width, widgetSize.height.isInfinite ? height : widgetSize.height);
     RenderBox? child = firstChild;
     for (int i = 0; i < appointmentCollection.length; i++) {
       final AppointmentView appointmentView = appointmentCollection[i];
-      if (appointmentView.appointment == null ||
-          child == null ||
-          appointmentView.appointmentRect == null) {
+      if (appointmentView.appointment == null || child == null || appointmentView.appointmentRect == null) {
         continue;
       }
 
@@ -650,10 +548,8 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
           maxHeight: appointmentView.appointmentRect!.height,
           minWidth: appointmentView.appointmentRect!.width,
           maxWidth: appointmentView.appointmentRect!.width));
-      final CalendarParentData childParentData =
-          child.parentData! as CalendarParentData;
-      childParentData.offset = Offset(appointmentView.appointmentRect!.left,
-          appointmentView.appointmentRect!.top);
+      final CalendarParentData childParentData = child.parentData! as CalendarParentData;
+      childParentData.offset = Offset(appointmentView.appointmentRect!.left, appointmentView.appointmentRect!.top);
       child = childAfter(child);
     }
   }
@@ -662,30 +558,17 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
   void paint(PaintingContext context, Offset offset) {
     RenderBox? child = firstChild;
     final bool isNeedDefaultPaint = childCount == 0;
-    final double totalAgendaViewWidth = size.width + timeLabelWidth;
-    final bool useMobilePlatformUI = CalendarViewHelper.isMobileLayoutUI(
-        totalAgendaViewWidth, isMobilePlatform);
-    final bool isLargerScheduleUI =
-        scheduleViewSettings != null && !useMobilePlatformUI;
     if (isNeedDefaultPaint) {
-      _drawDefaultUI(context.canvas, isLargerScheduleUI, offset);
+      _drawDefaultUI(context.canvas, offset);
     } else {
-      const double padding = 5.0;
       for (int i = 0; i < appointmentCollection.length; i++) {
         final AppointmentView appointmentView = appointmentCollection[i];
-        if (appointmentView.appointment == null ||
-            child == null ||
-            appointmentView.appointmentRect == null) {
+        if (appointmentView.appointment == null || child == null || appointmentView.appointmentRect == null) {
           continue;
         }
 
         final RRect rect = appointmentView.appointmentRect!.shift(offset);
         context.paintChild(child, Offset(rect.left, rect.top));
-        if (agendaViewNotifier.value != null &&
-            isSameDate(agendaViewNotifier.value!.hoveringDate, selectedDate)) {
-          _addMouseHovering(
-              context.canvas, size, rect, isLargerScheduleUI, padding);
-        }
 
         child = childAfter(child);
       }
@@ -709,9 +592,8 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     final List<SemanticsNode> semanticsNodes = <SemanticsNode>[];
     for (int i = 0; i < semantics.length; i++) {
       final CustomPainterSemantics currentSemantics = semantics[i];
-      final SemanticsNode newChild = _cacheNodes!.isNotEmpty
-          ? _cacheNodes!.removeAt(0)
-          : SemanticsNode(key: currentSemantics.key);
+      final SemanticsNode newChild =
+          _cacheNodes!.isNotEmpty ? _cacheNodes!.removeAt(0) : SemanticsNode(key: currentSemantics.key);
 
       final SemanticsProperties properties = currentSemantics.properties;
       final SemanticsConfiguration config = SemanticsConfiguration();
@@ -750,8 +632,7 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
   }
 
   List<CustomPainterSemantics> _getSemanticsBuilder(Size size) {
-    final List<CustomPainterSemantics> semanticsBuilder =
-        <CustomPainterSemantics>[];
+    final List<CustomPainterSemantics> semanticsBuilder = <CustomPainterSemantics>[];
     if (selectedDate == null) {
       semanticsBuilder.add(CustomPainterSemantics(
         rect: Offset.zero & size,
@@ -760,8 +641,7 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
           textDirection: TextDirection.ltr,
         ),
       ));
-    } else if (selectedDate != null &&
-        (appointments == null || appointments!.isEmpty)) {
+    } else if (selectedDate != null && (appointments == null || appointments!.isEmpty)) {
       semanticsBuilder.add(CustomPainterSemantics(
         rect: Offset.zero & size,
         properties: SemanticsProperties(
@@ -781,8 +661,7 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
         semanticsBuilder.add(CustomPainterSemantics(
           rect: appointmentView.appointmentRect!.outerRect,
           properties: SemanticsProperties(
-            label: CalendarViewHelper.getAppointmentSemanticsText(
-                appointmentView.appointment!),
+            label: CalendarViewHelper.getAppointmentSemanticsText(appointmentView.appointment!),
             textDirection: TextDirection.ltr,
           ),
         ));
@@ -792,7 +671,7 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     return semanticsBuilder;
   }
 
-  void _drawDefaultUI(Canvas canvas, bool isLargerScheduleUI, Offset offset) {
+  void _drawDefaultUI(Canvas canvas, Offset offset) {
     _rectPainter.isAntiAlias = true;
     double yPosition = offset.dy + 5;
     double xPosition = offset.dx + 5;
@@ -805,14 +684,10 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
 
     final TextStyle appointmentTextStyle = monthViewSettings != null
         ? monthViewSettings!.agendaStyle.appointmentTextStyle ??
-            const TextStyle(
-                color: Colors.white, fontSize: 13, fontFamily: 'Roboto')
+            const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'Roboto')
         : scheduleViewSettings!.appointmentTextStyle ??
-            TextStyle(
-                color: isLargerScheduleUI &&
-                        calendarTheme.brightness == Brightness.light
-                    ? Colors.black87
-                    : Colors.white,
+            const TextStyle(
+                color: Colors.white,
                 fontSize: 13,
                 fontFamily: 'Roboto');
 
@@ -825,142 +700,61 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
 
       final CalendarAppointment appointment = appointmentView.appointment!;
       _rectPainter.color = appointment.color;
-      final bool isSpanned =
-          appointment.actualEndTime.day != appointment.actualStartTime.day ||
-              appointment.isSpanned;
+      final bool isSpanned = appointment.actualEndTime.day != appointment.actualStartTime.day || appointment.isSpanned;
       final double appointmentHeight = appointmentView.appointmentRect!.height;
       final RRect rect = appointmentView.appointmentRect!.shift(offset);
       xPosition = rect.left;
       yPosition = rect.top;
 
-      /// Web view does not highlighted by background
-      if (!isLargerScheduleUI) {
-        canvas.drawRRect(rect, _rectPainter);
-      }
+      canvas.drawRRect(rect, _rectPainter);
 
-      final TextSpan span =
-          TextSpan(text: appointment.subject, style: appointmentTextStyle);
+      final TextSpan span = TextSpan(text: appointment.subject, style: appointmentTextStyle);
       _updateTextPainterProperties(span);
-      double timeWidth =
-          isLargerScheduleUI ? (size.width - (2 * padding)) * 0.3 : 0;
+      double timeWidth = 0;
       timeWidth = timeWidth > 200 ? 200 : timeWidth;
       xPosition += timeWidth;
 
-      final bool isRecurrenceAppointment = appointment.recurrenceRule != null &&
-          appointment.recurrenceRule!.isNotEmpty;
+      final bool isRecurrenceAppointment = appointment.recurrenceRule != null && appointment.recurrenceRule!.isNotEmpty;
 
-      final double textSize =
-          _getTextSize(rect, appointmentTextStyle, isMobilePlatform);
+      final double textSize = _getTextSize(rect, appointmentTextStyle);
 
       double topPadding = 0;
 
       /// Draw web schedule view.
-      if (isLargerScheduleUI) {
-        topPadding = _addScheduleViewForWeb(
-            canvas,
-            size,
-            padding,
-            xPosition,
-            yPosition,
-            timeWidth,
-            appointmentHeight,
-            isSpanned || isRecurrenceAppointment,
-            textSize,
-            appointment,
-            appointmentTextStyle,
-            offset);
-        if (isSpanned) {
-          final TextSpan icon = AppointmentHelper.getSpanIcon(
-              appointmentTextStyle.color!,
-              isMobilePlatform ? textSize : textSize / 1.5,
-              !isRTL);
-          _drawIcon(canvas, size, textSize, rect, padding, isLargerScheduleUI,
-              rect.tlRadius, icon, appointmentHeight, topPadding, true, false);
-        }
-      } else {
-        /// Draws spanning appointment UI for schedule view.
-        if (isSpanned) {
-          _drawSpanningAppointmentForScheduleView(
-              canvas,
-              size,
-              xPosition,
-              yPosition,
-              padding,
-              appointment,
-              appointmentTextStyle,
-              appointmentHeight,
-              rect,
-              isMobilePlatform,
-              isLargerScheduleUI,
-              rect.tlRadius);
-        }
-        //// Draw Appointments except All day appointment
-        else if (!appointment.isAllDay) {
-          topPadding = _drawNormalAppointmentUI(
-              canvas,
-              size,
-              xPosition,
-              yPosition,
-              padding,
-              timeWidth,
-              isRecurrenceAppointment,
-              textSize,
-              appointment,
-              appointmentHeight,
-              appointmentTextStyle);
-        } else {
-          //// Draw All day appointment
-          _updatePainterLinesCount(appointmentHeight,
-              isAllDay: true, isSpanned: false);
-          final double iconSize = isRecurrenceAppointment ? textSize + 10 : 0;
-          _textPainter.layout(
-              minWidth: 0, maxWidth: size.width - 10 - padding - iconSize);
-          if (isRTL) {
-            xPosition = size.width - _textPainter.width - (padding * 3);
-          }
 
-          topPadding = (appointmentHeight - _textPainter.height) / 2;
-          _textPainter.paint(
-              canvas, Offset(xPosition + 5, yPosition + topPadding));
-        }
+      /// Draws spanning appointment UI for schedule view.
+      if (isSpanned) {
+        _drawSpanningAppointmentForScheduleView(canvas, size, xPosition, yPosition, padding, appointment, appointmentTextStyle,
+            appointmentHeight, rect, rect.tlRadius);
+      }
+      //// Draw Appointments except All day appointment
+      else if (!appointment.isAllDay) {
+        topPadding = _drawNormalAppointmentUI(canvas, size, xPosition, yPosition, padding, timeWidth, isRecurrenceAppointment,
+            textSize, appointment, appointmentHeight, appointmentTextStyle);
+      } else {
+        //// Draw All day appointment
+        _updatePainterLinesCount(appointmentHeight, isAllDay: true, isSpanned: false);
+        final double iconSize = isRecurrenceAppointment ? textSize + 10 : 0;
+        _textPainter.layout(minWidth: 0, maxWidth: size.width - 10 - padding - iconSize);
+
+        topPadding = (appointmentHeight - _textPainter.height) / 2;
+        _textPainter.paint(canvas, Offset(xPosition + 5, yPosition + topPadding));
       }
 
       if (isRecurrenceAppointment || appointment.recurrenceId != null) {
-        final TextSpan icon = AppointmentHelper.getRecurrenceIcon(
-            appointmentTextStyle.color!, textSize, isRecurrenceAppointment);
-        _drawIcon(
-            canvas,
-            size,
-            textSize,
-            rect,
-            padding,
-            isLargerScheduleUI,
-            rect.tlRadius,
-            icon,
-            appointmentHeight,
-            topPadding,
-            false,
-            appointment.isAllDay);
-      }
-
-      if (agendaViewNotifier.value != null &&
-          isSameDate(agendaViewNotifier.value!.hoveringDate, selectedDate)) {
-        _addMouseHovering(canvas, size, rect, isLargerScheduleUI, padding);
+        final TextSpan icon = AppointmentHelper.getRecurrenceIcon(appointmentTextStyle.color!, textSize, isRecurrenceAppointment);
+        _drawIcon(canvas, size, textSize, rect, padding, rect.tlRadius, icon, appointmentHeight, topPadding,
+            false, appointment.isAllDay);
       }
     }
   }
 
-  double _getTextSize(
-      RRect rect, TextStyle appointmentTextStyle, bool isMobilePlatform) {
+  double _getTextSize(RRect rect, TextStyle appointmentTextStyle) {
     // The default font size if none is specified.
     // The value taken from framework, for text style when there is no font
     // size given they have used 14 as the default font size.
     const double defaultFontSize = 14;
-    final double textSize = isMobilePlatform
-        ? appointmentTextStyle.fontSize ?? defaultFontSize
-        : appointmentTextStyle.fontSize != null
-            ? appointmentTextStyle.fontSize! * 1.5
-            : defaultFontSize * 1.5;
+    final double textSize = appointmentTextStyle.fontSize ?? defaultFontSize;
     if (rect.width < textSize || rect.height < textSize) {
       return rect.width > rect.height ? rect.height : rect.width;
     }
@@ -968,41 +762,15 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     return textSize;
   }
 
-  void _drawIcon(
-      Canvas canvas,
-      Size size,
-      double textSize,
-      RRect rect,
-      double padding,
-      bool isLargerScheduleUI,
-      Radius cornerRadius,
-      TextSpan icon,
-      double appointmentHeight,
-      double yPosition,
-      bool isSpan,
-      bool isAllDay) {
+  void _drawIcon(Canvas canvas, Size size, double textSize, RRect rect, double padding,
+      Radius cornerRadius, TextSpan icon, double appointmentHeight, double yPosition, bool isSpan, bool isAllDay) {
     _textPainter.text = icon;
     _textPainter.textScaleFactor = textScaleFactor;
-    _textPainter.layout(
-        minWidth: 0, maxWidth: size.width - (2 * padding) - padding);
+    _textPainter.layout(minWidth: 0, maxWidth: size.width - (2 * padding) - padding);
     final double iconSize = textSize + 8;
-    if (!isLargerScheduleUI) {
-      if (isRTL) {
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-                Rect.fromLTRB(
-                    rect.left, rect.top, rect.left + iconSize, rect.bottom),
-                cornerRadius),
-            _rectPainter);
-      } else {
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-                Rect.fromLTRB(
-                    rect.right - iconSize, rect.top, rect.right, rect.bottom),
-                cornerRadius),
-            _rectPainter);
-      }
-    }
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTRB(rect.right - iconSize, rect.top, rect.right, rect.bottom), cornerRadius),
+        _rectPainter);
 
     double iconStartPosition = 0;
     if (isSpan) {
@@ -1011,32 +779,18 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
       /// value 2 used since the space on top and bottom of icon is not even,
       /// hence to rectify this tha value 2 used, and tested with multiple
       /// device.
-      iconStartPosition = (_textPainter.height -
-              (icon.style!.fontSize! * textScaleFactor) / 2) /
-          2;
+      iconStartPosition = (_textPainter.height - (icon.style!.fontSize! * textScaleFactor) / 2) / 2;
     }
 
-    // Value 8 added as a right side padding for the recurrence icon in the
-    // agenda view
-    if (isRTL) {
-      _textPainter.paint(
-          canvas, Offset(8, rect.top + yPosition - iconStartPosition));
-    } else {
-      _textPainter.paint(
-          canvas,
-          Offset(rect.right - _textPainter.width - 8,
-              rect.top + yPosition - iconStartPosition));
-    }
+    _textPainter.paint(canvas, Offset(rect.right - _textPainter.width - 8, rect.top + yPosition - iconStartPosition));
   }
 
-  double _updatePainterLinesCount(double appointmentHeight,
-      {bool isSpanned = false, bool isAllDay = false}) {
+  double _updatePainterLinesCount(double appointmentHeight, {bool isSpanned = false, bool isAllDay = false}) {
     final double lineHeight = _textPainter.preferredLineHeight;
 
     /// Top and bottom padding 5
     const double verticalPadding = 10;
-    final int maxLines =
-        ((appointmentHeight - verticalPadding) / lineHeight).floor();
+    final int maxLines = ((appointmentHeight - verticalPadding) / lineHeight).floor();
     if (maxLines > 1) {
       _textPainter.maxLines = isSpanned || isAllDay ? maxLines : maxLines - 1;
     }
@@ -1058,26 +812,16 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
       double appointmentHeight,
       TextStyle appointmentTextStyle) {
     _textPainter.textScaleFactor = textScaleFactor;
-    final double lineHeight = _updatePainterLinesCount(appointmentHeight,
-        isAllDay: false, isSpanned: false);
+    final double lineHeight = _updatePainterLinesCount(appointmentHeight, isAllDay: false, isSpanned: false);
     final double iconSize = isRecurrence ? recurrenceTextSize + 10 : 0;
-    _textPainter.layout(
-        minWidth: 0,
-        maxWidth: size.width - (2 * padding) - xPosition - iconSize);
+    _textPainter.layout(minWidth: 0, maxWidth: size.width - (2 * padding) - xPosition - iconSize);
     final double subjectHeight = _textPainter.height;
-    final double topPadding =
-        (appointmentHeight - (subjectHeight + lineHeight)) / 2;
-    if (isRTL) {
-      xPosition = size.width - _textPainter.width - (3 * padding) - timeWidth;
-    }
+    final double topPadding = (appointmentHeight - (subjectHeight + lineHeight)) / 2;
 
-    _textPainter.paint(
-        canvas, Offset(xPosition + padding, yPosition + topPadding));
+    _textPainter.paint(canvas, Offset(xPosition + padding, yPosition + topPadding));
 
     final String format = appointmentTimeTextFormat ??
-        (isSameDate(appointment.actualStartTime, appointment.actualEndTime)
-            ? 'hh:mm a'
-            : 'MMM dd, hh:mm a');
+        (isSameDate(appointment.actualStartTime, appointment.actualEndTime) ? 'hh:mm a' : 'MMM dd, hh:mm a');
     final TextSpan span = TextSpan(
         text: DateFormat(format, locale).format(appointment.actualStartTime) +
             ' - ' +
@@ -1086,13 +830,8 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     _textPainter.text = span;
 
     _textPainter.maxLines = 1;
-    _textPainter.layout(
-        minWidth: 0, maxWidth: size.width - (2 * padding) - padding - iconSize);
-    if (isRTL) {
-      xPosition = size.width - _textPainter.width - (3 * padding);
-    }
-    _textPainter.paint(canvas,
-        Offset(xPosition + padding, yPosition + topPadding + subjectHeight));
+    _textPainter.layout(minWidth: 0, maxWidth: size.width - (2 * padding) - padding - iconSize);
+    _textPainter.paint(canvas, Offset(xPosition + padding, yPosition + topPadding + subjectHeight));
 
     return topPadding;
   }
@@ -1107,63 +846,42 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
       TextStyle appointmentTextStyle,
       double appointmentHeight,
       RRect rect,
-      bool isMobilePlatform,
-      bool isLargerScheduleUI,
       Radius cornerRadius) {
     final TextSpan span = TextSpan(
-        text: AppointmentHelper.getSpanAppointmentText(
-            appointment, selectedDate!, localizations),
-        style: appointmentTextStyle);
+        text: AppointmentHelper.getSpanAppointmentText(appointment, selectedDate!, localizations), style: appointmentTextStyle);
 
     _updateTextPainterProperties(span);
-    _updatePainterLinesCount(appointmentHeight,
-        isAllDay: false, isSpanned: true);
-    final bool isNeedSpanIcon =
-        !isSameDate(appointment.exactEndTime, selectedDate);
-    final double textSize =
-        _getTextSize(rect, appointmentTextStyle, isMobilePlatform);
+    _updatePainterLinesCount(appointmentHeight, isAllDay: false, isSpanned: true);
+    final bool isNeedSpanIcon = !isSameDate(appointment.exactEndTime, selectedDate);
+    final double textSize = _getTextSize(rect, appointmentTextStyle);
 
     /// Icon padding 8 and 2 additional padding
     final double iconSize = isNeedSpanIcon ? textSize + 10 : 0;
     double maxTextWidth = size.width - 10 - padding - iconSize;
     maxTextWidth = maxTextWidth > 0 ? maxTextWidth : 0;
     _textPainter.layout(minWidth: 0, maxWidth: maxTextWidth);
-    if (isRTL) {
-      xPosition = size.width - _textPainter.width - (padding * 3);
-    }
 
     final double topPadding = (appointmentHeight - _textPainter.height) / 2;
-    _textPainter.paint(
-        canvas, Offset(xPosition + padding, yPosition + topPadding));
+    _textPainter.paint(canvas, Offset(xPosition + padding, yPosition + topPadding));
 
     if (!isNeedSpanIcon) {
       return topPadding;
     }
 
-    final TextSpan icon = AppointmentHelper.getSpanIcon(
-        appointmentTextStyle.color!,
-        isMobilePlatform ? textSize : textSize / 1.5,
-        !isRTL);
-    _drawIcon(canvas, size, textSize, rect, padding, isLargerScheduleUI,
-        cornerRadius, icon, appointmentHeight, topPadding, true, false);
+    final TextSpan icon = AppointmentHelper.getSpanIcon(appointmentTextStyle.color!, textSize, true);
+    _drawIcon(canvas, size, textSize, rect, padding, cornerRadius, icon, appointmentHeight, topPadding, true,
+        false);
     return topPadding;
   }
 
-  void _drawDefaultView(Canvas canvas, Size size, double xPosition,
-      double yPosition, double padding) {
+  void _drawDefaultView(Canvas canvas, Size size, double xPosition, double yPosition, double padding) {
     final TextSpan span = TextSpan(
-      text: selectedDate == null
-          ? localizations.noSelectedDateCalendarLabel
-          : localizations.noEventsCalendarLabel,
-      style: const TextStyle(
-          color: Colors.grey, fontSize: 15, fontFamily: 'Roboto'),
+      text: selectedDate == null ? localizations.noSelectedDateCalendarLabel : localizations.noEventsCalendarLabel,
+      style: const TextStyle(color: Colors.grey, fontSize: 15, fontFamily: 'Roboto'),
     );
 
     _updateTextPainterProperties(span);
     _textPainter.layout(minWidth: 0, maxWidth: size.width - 10);
-    if (isRTL) {
-      xPosition = size.width - _textPainter.width;
-    }
     _textPainter.paint(canvas, Offset(xPosition, yPosition + padding));
   }
 
@@ -1174,105 +892,5 @@ class _AgendaViewRenderObject extends CustomCalendarRenderObject {
     _textPainter.textAlign = TextAlign.left;
     _textPainter.textWidthBasis = TextWidthBasis.longestLine;
     _textPainter.textScaleFactor = textScaleFactor;
-  }
-
-  double _addScheduleViewForWeb(
-      Canvas canvas,
-      Size size,
-      double padding,
-      double xPosition,
-      double yPosition,
-      double timeWidth,
-      double appointmentHeight,
-      bool isNeedIcon,
-      double textSize,
-      CalendarAppointment appointment,
-      TextStyle appointmentTextStyle,
-      Offset offset) {
-    _textPainter.textScaleFactor = textScaleFactor;
-    final double centerYPosition = appointmentHeight / 2;
-    final double circleRadius =
-        centerYPosition > padding ? padding : centerYPosition - 2;
-    final double circleStartPosition = offset.dx + (3 * circleRadius);
-    canvas.drawCircle(
-        Offset(isRTL ? size.width - circleStartPosition : circleStartPosition,
-            yPosition + centerYPosition),
-        circleRadius,
-        _rectPainter);
-    final double circleWidth = 5 * circleRadius;
-    xPosition += circleWidth;
-
-    _updatePainterLinesCount(appointmentHeight,
-        isAllDay: true, isSpanned: true);
-
-    /// Icon padding 8 and 2 additional padding
-    final double iconSize = isNeedIcon ? textSize + 10 : 0;
-
-    _textPainter.layout(
-        minWidth: 0,
-        maxWidth: size.width - (2 * padding) - xPosition - iconSize);
-
-    if (isRTL) {
-      xPosition = size.width -
-          _textPainter.width -
-          (3 * padding) -
-          timeWidth -
-          circleWidth;
-    }
-
-    final double topPadding = (appointmentHeight - _textPainter.height) / 2;
-    _textPainter.paint(
-        canvas, Offset(xPosition + padding, yPosition + topPadding));
-    final DateFormat format =
-        DateFormat(appointmentTimeTextFormat ?? 'hh:mm a', locale);
-    final TextSpan span = TextSpan(
-        text: appointment.isAllDay || appointment.isSpanned
-            ? 'All Day'
-            : format.format(appointment.actualStartTime) +
-                ' - ' +
-                format.format(appointment.actualEndTime),
-        style: appointmentTextStyle);
-    _textPainter.text = span;
-
-    _textPainter.layout(minWidth: 0, maxWidth: timeWidth - padding);
-    xPosition = offset.dx + padding + circleWidth;
-    if (isRTL) {
-      xPosition = size.width - _textPainter.width - (3 * padding) - circleWidth;
-    }
-
-    _textPainter.paint(
-        canvas,
-        Offset(xPosition + padding,
-            yPosition + ((appointmentHeight - _textPainter.height) / 2)));
-    return topPadding;
-  }
-
-  void _addMouseHovering(Canvas canvas, Size size, RRect rect,
-      bool isLargerScheduleUI, double padding) {
-    if (rect.left < agendaViewNotifier.value!.hoveringOffset.dx &&
-        rect.right > agendaViewNotifier.value!.hoveringOffset.dx &&
-        rect.top < agendaViewNotifier.value!.hoveringOffset.dy &&
-        rect.bottom > agendaViewNotifier.value!.hoveringOffset.dy) {
-      if (isLargerScheduleUI) {
-        _rectPainter.color = Colors.grey.withOpacity(0.1);
-        const double viewPadding = 2;
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-                Rect.fromLTWH(
-                    rect.left - padding,
-                    rect.top + viewPadding,
-                    size.width - (isRTL ? viewPadding : padding),
-                    rect.height - (2 * viewPadding)),
-                const Radius.circular(4)),
-            _rectPainter);
-      } else {
-        _rectPainter.color =
-            calendarTheme.selectionBorderColor!.withOpacity(0.4);
-        _rectPainter.style = PaintingStyle.stroke;
-        _rectPainter.strokeWidth = 2;
-        canvas.drawRect(rect.outerRect, _rectPainter);
-        _rectPainter.style = PaintingStyle.fill;
-      }
-    }
   }
 }

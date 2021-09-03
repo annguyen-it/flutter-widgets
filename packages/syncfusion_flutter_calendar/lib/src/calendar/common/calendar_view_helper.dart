@@ -27,48 +27,9 @@ const double kAllDayAppointmentHeight = 20;
 typedef UpdateCalendarState = void Function(
     UpdateCalendarStateDetails _updateCalendarStateDetails);
 
-//// Extra small devices (phones, 600px and down)
-//// @media only screen and (max-width: 600px) {...}
-////
-//// Small devices (portrait tablets and large phones, 600px and up)
-//// @media only screen and (min-width: 600px) {...}
-////
-//// Medium devices (landscape tablets, 768px and up)
-//// media only screen and (min-width: 768px) {...}
-////
-//// Large devices (laptops/desktops, 992px and up)
-//// media only screen and (min-width: 992px) {...}
-////
-//// Extra large devices (large laptops and desktops, 1200px and up)
-//// media only screen and (min-width: 1200px) {...}
-//// Default width to render the mobile UI in web, if the device width exceeds
-//// the given width agenda view will render the web UI.
-const double _kMobileViewWidth = 767;
-
 /// Holds the static helper methods used for calendar views rendering
 /// in calendar.
 class CalendarViewHelper {
-  /// Return the current context direction is RTL or not.
-  static bool isRTLLayout(BuildContext context) {
-    final TextDirection direction = Directionality.of(context);
-    return direction == TextDirection.rtl;
-  }
-
-  /// Determine the current platform needs mobile platform UI.
-  /// The [_kMobileViewWidth] value is a breakpoint for mobile platform.
-  static bool isMobileLayoutUI(double width, bool isMobileLayout) {
-    return isMobileLayout || width <= _kMobileViewWidth;
-  }
-
-  /// Determine the current platform is mobile platform(android or iOS).
-  static bool isMobileLayout(TargetPlatform platform) {
-    if (kIsWeb) {
-      return false;
-    }
-
-    return platform == TargetPlatform.android || platform == TargetPlatform.iOS;
-  }
-
   /// Check the list is empty or not.
   static bool isEmptyList<T>(List<T>? value) {
     if (value == null || value.isEmpty) {
@@ -623,10 +584,9 @@ class CalendarViewHelper {
   }
 
   /// Check the showWeekNumber is true or not and returns the position.
-  static double getWeekNumberPanelWidth(
-      bool showWeekNumber, double width, bool isMobilePlatform) {
+  static double getWeekNumberPanelWidth(bool showWeekNumber, double width) {
     return showWeekNumber
-        ? (width / (DateTime.daysPerWeek + 1)) / (isMobilePlatform ? 1.3 : 4)
+        ? (width / (DateTime.daysPerWeek + 1)) / 1.3
         : 0;
   }
 }
@@ -1057,19 +1017,6 @@ class CalendarTimeRegion {
         iconData,
         timeZone);
   }
-}
-
-/// Used to hold the schedule view hovering details
-@immutable
-class ScheduleViewHoveringDetails {
-  /// Constructor to create the schedule view hovering details.
-  const ScheduleViewHoveringDetails(this.hoveringDate, this.hoveringOffset);
-
-  /// Holds the hovering position date time value.
-  final DateTime hoveringDate;
-
-  /// Holds the hovering position value.
-  final Offset hoveringOffset;
 }
 
 /// The class contains all day panel selection details.

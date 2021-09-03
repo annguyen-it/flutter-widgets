@@ -20,12 +20,10 @@ class MonthViewWidget extends StatefulWidget {
       this.visibleDates,
       this.rowCount,
       this.monthCellStyle,
-      this.isRTL,
       this.todayHighlightColor,
       this.todayTextStyle,
       this.cellBorderColor,
       this.calendarTheme,
-      this.calendarCellNotifier,
       this.showTrailingAndLeadingDates,
       this.minDate,
       this.maxDate,
@@ -37,7 +35,6 @@ class MonthViewWidget extends StatefulWidget {
       this.width,
       this.height,
       this.weekNumberStyle,
-      this.isMobilePlatform,
       this.visibleAppointmentNotifier);
 
   /// Defines the row count for the month view.
@@ -48,9 +45,6 @@ class MonthViewWidget extends StatefulWidget {
 
   /// Holds the current month view widget dates.
   final List<DateTime> visibleDates;
-
-  /// Defines the direction of calendar widget is RTL or not.
-  final bool isRTL;
 
   /// Defines the today month cell highlight color.
   final Color? todayHighlightColor;
@@ -63,9 +57,6 @@ class MonthViewWidget extends StatefulWidget {
 
   /// Holds the theme data details for calendar.
   final SfCalendarThemeData calendarTheme;
-
-  /// Holds the current hovering point used to paint the hovering.
-  final ValueNotifier<Offset?> calendarCellNotifier;
 
   /// Defines the min date of the calendar.
   final DateTime minDate;
@@ -97,9 +88,6 @@ class MonthViewWidget extends StatefulWidget {
   /// Defines the text style of the week number.
   final WeekNumberStyle weekNumberStyle;
 
-  /// Defines the current platform is mobile platform or not.
-  final bool isMobilePlatform;
-
   /// Used to build the widget that replaces the month cell.
   final MonthCellBuilder? builder;
 
@@ -120,8 +108,7 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
 
   @override
   void didUpdateWidget(MonthViewWidget oldWidget) {
-    if (widget.visibleAppointmentNotifier !=
-        oldWidget.visibleAppointmentNotifier) {
+    if (widget.visibleAppointmentNotifier != oldWidget.visibleAppointmentNotifier) {
       oldWidget.visibleAppointmentNotifier.removeListener(_updateAppointment);
       widget.visibleAppointmentNotifier.addListener(_updateAppointment);
     }
@@ -138,26 +125,18 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> children = <Widget>[];
-    final double weekNumberPanelWidth =
-        CalendarViewHelper.getWeekNumberPanelWidth(
-            widget.calendar.showWeekNumber,
-            widget.width,
-            widget.isMobilePlatform);
+    final double weekNumberPanelWidth = CalendarViewHelper.getWeekNumberPanelWidth(widget.calendar.showWeekNumber, widget.width);
     if (widget.builder != null) {
       final int visibleDatesCount = widget.visibleDates.length;
-      final double cellWidth =
-          (widget.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
+      final double cellWidth = (widget.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
       final double cellHeight = widget.height / widget.rowCount;
       double xPosition = weekNumberPanelWidth, yPosition = 0;
-      final int currentMonth =
-          widget.visibleDates[visibleDatesCount ~/ 2].month;
+      final int currentMonth = widget.visibleDates[visibleDatesCount ~/ 2].month;
       final bool showTrailingLeadingDates =
-          CalendarViewHelper.isLeadingAndTrailingDatesVisible(
-              widget.rowCount, widget.showTrailingAndLeadingDates);
+          CalendarViewHelper.isLeadingAndTrailingDatesVisible(widget.rowCount, widget.showTrailingAndLeadingDates);
       for (int i = 0; i < visibleDatesCount; i++) {
         final DateTime currentVisibleDate = widget.visibleDates[i];
-        if (!showTrailingLeadingDates &&
-            currentMonth != currentVisibleDate.month) {
+        if (!showTrailingLeadingDates && currentMonth != currentVisibleDate.month) {
           xPosition += cellWidth;
           if (xPosition + 1 >= widget.width) {
             xPosition = weekNumberPanelWidth;
@@ -167,32 +146,17 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
           continue;
         }
 
-        final List<CalendarAppointment> appointments =
-            AppointmentHelper.getSelectedDateAppointments(
-                widget.visibleAppointmentNotifier.value,
-                widget.calendar.timeZone,
-                currentVisibleDate);
+        final List<CalendarAppointment> appointments = AppointmentHelper.getSelectedDateAppointments(
+            widget.visibleAppointmentNotifier.value, widget.calendar.timeZone, currentVisibleDate);
         List<dynamic> monthCellAppointment = appointments;
-        if (widget.calendar.dataSource != null &&
-            !AppointmentHelper.isCalendarAppointment(
-                widget.calendar.dataSource!)) {
-          monthCellAppointment =
-              CalendarViewHelper.getCustomAppointments(appointments);
+        if (widget.calendar.dataSource != null && !AppointmentHelper.isCalendarAppointment(widget.calendar.dataSource!)) {
+          monthCellAppointment = CalendarViewHelper.getCustomAppointments(appointments);
         }
 
         final Widget child = widget.builder!(
             context,
-            MonthCellDetails(
-                currentVisibleDate,
-                List<Object>.unmodifiable(monthCellAppointment),
-                List<DateTime>.unmodifiable(widget.visibleDates),
-                Rect.fromLTWH(
-                    widget.isRTL
-                        ? widget.width - xPosition - cellWidth
-                        : xPosition,
-                    yPosition,
-                    cellWidth,
-                    cellHeight)));
+            MonthCellDetails(currentVisibleDate, List<Object>.unmodifiable(monthCellAppointment),
+                List<DateTime>.unmodifiable(widget.visibleDates), Rect.fromLTWH(xPosition, yPosition, cellWidth, cellHeight)));
         children.add(RepaintBoundary(child: child));
 
         xPosition += cellWidth;
@@ -208,12 +172,10 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
       widget.visibleAppointmentNotifier.value,
       widget.rowCount,
       widget.monthCellStyle,
-      widget.isRTL,
       widget.todayHighlightColor,
       widget.todayTextStyle,
       widget.cellBorderColor,
       widget.calendarTheme,
-      widget.calendarCellNotifier,
       widget.minDate,
       widget.maxDate,
       widget.blackoutDates,
@@ -224,7 +186,6 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
       widget.height,
       widget.calendar.weekNumberStyle,
       weekNumberPanelWidth,
-      widget.isMobilePlatform,
       children: children,
     );
   }
@@ -242,12 +203,10 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
       this.visibleAppointments,
       this.rowCount,
       this.monthCellStyle,
-      this.isRTL,
       this.todayHighlightColor,
       this.todayTextStyle,
       this.cellBorderColor,
       this.calendarTheme,
-      this.calendarCellNotifier,
       this.minDate,
       this.maxDate,
       this.blackoutDates,
@@ -258,7 +217,6 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
       this.height,
       this.weekNumberStyle,
       this.weekNumberPanelWidth,
-      this.isMobilePlatform,
       {List<Widget> children = const <Widget>[]})
       : super(children: children);
 
@@ -266,12 +224,10 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
   final MonthCellStyle monthCellStyle;
   final List<DateTime> visibleDates;
   final List<CalendarAppointment>? visibleAppointments;
-  final bool isRTL;
   final Color? todayHighlightColor;
   final TextStyle? todayTextStyle;
   final Color? cellBorderColor;
   final SfCalendarThemeData calendarTheme;
-  final ValueNotifier<Offset?> calendarCellNotifier;
   final DateTime minDate;
   final DateTime maxDate;
   final List<DateTime>? blackoutDates;
@@ -282,7 +238,6 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
   final double height;
   final WeekNumberStyle weekNumberStyle;
   final double weekNumberPanelWidth;
-  final bool isMobilePlatform;
 
   @override
   _MonthViewRenderObject createRenderObject(BuildContext context) {
@@ -291,12 +246,10 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
         visibleAppointments,
         rowCount,
         monthCellStyle,
-        isRTL,
         todayHighlightColor,
         todayTextStyle,
         cellBorderColor,
         calendarTheme,
-        calendarCellNotifier,
         minDate,
         maxDate,
         blackoutDates,
@@ -306,24 +259,20 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
         width,
         height,
         weekNumberStyle,
-        weekNumberPanelWidth,
-        isMobilePlatform);
+        weekNumberPanelWidth);
   }
 
   @override
-  void updateRenderObject(
-      BuildContext context, _MonthViewRenderObject renderObject) {
+  void updateRenderObject(BuildContext context, _MonthViewRenderObject renderObject) {
     renderObject
       ..visibleDates = visibleDates
       ..visibleAppointments = visibleAppointments
       ..rowCount = rowCount
       ..monthCellStyle = monthCellStyle
-      ..isRTL = isRTL
       ..todayHighlightColor = todayHighlightColor
       ..todayTextStyle = todayTextStyle
       ..cellBorderColor = cellBorderColor
       ..calendarTheme = calendarTheme
-      ..calendarCellNotifier = calendarCellNotifier
       ..minDate = minDate
       ..maxDate = maxDate
       ..blackoutDates = blackoutDates
@@ -333,8 +282,7 @@ class _MonthViewRenderObjectWidget extends MultiChildRenderObjectWidget {
       ..width = width
       ..height = height
       ..weekNumberPanelWidth = weekNumberPanelWidth
-      ..weekNumberStyle = weekNumberStyle
-      ..isMobilePlatform = isMobilePlatform;
+      ..weekNumberStyle = weekNumberStyle;
   }
 }
 
@@ -344,12 +292,10 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
       this._visibleAppointments,
       this._rowCount,
       this._monthCellStyle,
-      this._isRTL,
       this._todayHighlightColor,
       this._todayTextStyle,
       this._cellBorderColor,
       this._calendarTheme,
-      this._calendarCellNotifier,
       this._minDate,
       this._maxDate,
       this._blackoutDates,
@@ -359,20 +305,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
       this._width,
       this._height,
       this._weekNumberStyle,
-      this._weekNumberPanelWidth,
-      this._isMobilePlatform);
-
-  bool _isMobilePlatform;
-
-  bool get isMobilePlatform => _isMobilePlatform;
-
-  set isMobilePlatform(bool value) {
-    if (_isMobilePlatform == value) {
-      return;
-    }
-
-    _isMobilePlatform = value;
-  }
+      this._weekNumberPanelWidth);
 
   double _height;
 
@@ -520,23 +453,6 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     markNeedsPaint();
   }
 
-  bool _isRTL;
-
-  bool get isRTL => _isRTL;
-
-  set isRTL(bool value) {
-    if (_isRTL == value) {
-      return;
-    }
-
-    _isRTL = value;
-    if (childCount == 0) {
-      markNeedsPaint();
-    } else {
-      markNeedsLayout();
-    }
-  }
-
   bool _showTrailingAndLeadingDates;
 
   bool get showTrailingAndLeadingDates => _showTrailingAndLeadingDates;
@@ -612,8 +528,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
 
     final List<DateTime>? oldDates = _blackoutDates;
     _blackoutDates = value;
-    if (CalendarViewHelper.isEmptyList(_blackoutDates) &&
-        CalendarViewHelper.isEmptyList(oldDates)) {
+    if (CalendarViewHelper.isEmptyList(_blackoutDates) && CalendarViewHelper.isEmptyList(oldDates)) {
       return;
     }
 
@@ -636,20 +551,6 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     }
 
     markNeedsPaint();
-  }
-
-  ValueNotifier<Offset?> _calendarCellNotifier;
-
-  ValueNotifier<Offset?> get calendarCellNotifier => _calendarCellNotifier;
-
-  set calendarCellNotifier(ValueNotifier<Offset?> value) {
-    if (_calendarCellNotifier == value) {
-      return;
-    }
-
-    _calendarCellNotifier.removeListener(markNeedsPaint);
-    _calendarCellNotifier = value;
-    _calendarCellNotifier.addListener(markNeedsPaint);
   }
 
   WeekNumberStyle _weekNumberStyle;
@@ -686,33 +587,15 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     }
   }
 
-  /// attach will called when the render object rendered in view.
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _calendarCellNotifier.addListener(markNeedsPaint);
-  }
-
-  /// detach will called when the render object removed from view.
-  @override
-  void detach() {
-    _calendarCellNotifier.removeListener(markNeedsPaint);
-    super.detach();
-  }
-
   @override
   void performLayout() {
     final Size widgetSize = constraints.biggest;
-    size = Size(widgetSize.width.isInfinite ? width : widgetSize.width,
-        widgetSize.height.isInfinite ? height : widgetSize.height);
+    size =
+        Size(widgetSize.width.isInfinite ? width : widgetSize.width, widgetSize.height.isInfinite ? height : widgetSize.height);
     final double cellWidth = size.width / DateTime.daysPerWeek;
     final double cellHeight = size.height / rowCount;
     for (dynamic child = firstChild; child != null; child = childAfter(child)) {
-      child.layout(constraints.copyWith(
-          minWidth: cellWidth,
-          minHeight: cellHeight,
-          maxWidth: cellWidth,
-          maxHeight: cellHeight));
+      child.layout(constraints.copyWith(minWidth: cellWidth, minHeight: cellHeight, maxWidth: cellWidth, maxHeight: cellHeight));
     }
   }
 
@@ -726,44 +609,34 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     if (!_isNeedCustomPaint) {
       _drawMonthCells(context.canvas, size);
     } else {
-      final double cellWidth =
-          (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
+      final double cellWidth = (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
       final double cellHeight = size.height / rowCount;
       double xPosition = weekNumberPanelWidth, yPosition = 0;
       RenderBox? child = firstChild;
       final int visibleDatesCount = visibleDates.length;
       final int currentMonth = visibleDates[visibleDatesCount ~/ 2].month;
       final bool showTrailingLeadingDates =
-          CalendarViewHelper.isLeadingAndTrailingDatesVisible(
-              rowCount, showTrailingAndLeadingDates);
+          CalendarViewHelper.isLeadingAndTrailingDatesVisible(rowCount, showTrailingAndLeadingDates);
       _drawWeekNumberPanel(context.canvas, cellHeight);
       for (int i = 0; i < visibleDatesCount; i++) {
         final DateTime currentVisibleDate = visibleDates[i];
 
         if (weekNumberPanelWidth != 0 &&
             !showTrailingAndLeadingDates &&
-            ((i <= DateTime.daysPerWeek &&
-                    visibleDates[DateTime.daysPerWeek].month == currentMonth) ||
+            ((i <= DateTime.daysPerWeek && visibleDates[DateTime.daysPerWeek].month == currentMonth) ||
                 (i > DateTime.daysPerWeek &&
                     i <= (DateTime.daysPerWeek * 2) &&
-                    visibleDates[DateTime.daysPerWeek * 2].month ==
-                        currentMonth) ||
+                    visibleDates[DateTime.daysPerWeek * 2].month == currentMonth) ||
                 (i > visibleDatesCount - (DateTime.daysPerWeek * 2) &&
                     (i < visibleDatesCount - DateTime.daysPerWeek) &&
-                    visibleDates[visibleDatesCount - (DateTime.daysPerWeek * 2)]
-                            .month ==
-                        currentMonth) ||
+                    visibleDates[visibleDatesCount - (DateTime.daysPerWeek * 2)].month == currentMonth) ||
                 ((i >= visibleDatesCount - DateTime.daysPerWeek) &&
-                    visibleDates[visibleDatesCount - DateTime.daysPerWeek]
-                            .month ==
-                        currentMonth)) &&
+                    visibleDates[visibleDatesCount - DateTime.daysPerWeek].month == currentMonth)) &&
             currentVisibleDate.weekday == DateTime.monday) {
-          _drawWeekNumber(
-              context.canvas, size, currentVisibleDate, cellHeight, yPosition);
+          _drawWeekNumber(context.canvas, size, currentVisibleDate, cellHeight, yPosition);
         }
 
-        if (!showTrailingLeadingDates &&
-            currentMonth != currentVisibleDate.month) {
+        if (!showTrailingLeadingDates && currentMonth != currentVisibleDate.month) {
           xPosition += cellWidth;
           if (xPosition + 1 >= size.width) {
             xPosition = weekNumberPanelWidth;
@@ -772,17 +645,8 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
           continue;
         }
 
-        context.paintChild(
-            child!,
-            Offset(isRTL ? size.width - xPosition - cellWidth : xPosition,
-                yPosition));
+        context.paintChild(child!, Offset(xPosition, yPosition));
         child = childAfter(child);
-
-        if (calendarCellNotifier.value != null &&
-            !_blackoutDatesIndex.contains(i)) {
-          _addMouseHovering(context.canvas, size, cellWidth, cellHeight,
-              isRTL ? xPosition - weekNumberPanelWidth : xPosition, yPosition);
-        }
 
         if (weekNumberPanelWidth != 0 &&
             currentVisibleDate.weekday == DateTime.monday &&
@@ -790,8 +654,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
                 (!showTrailingAndLeadingDates &&
                     (i >= (DateTime.daysPerWeek * 2)) &&
                     (i <= visibleDatesCount - (DateTime.daysPerWeek * 2))))) {
-          _drawWeekNumber(
-              context.canvas, size, currentVisibleDate, cellHeight, yPosition);
+          _drawWeekNumber(context.canvas, size, currentVisibleDate, cellHeight, yPosition);
         }
 
         xPosition += cellWidth;
@@ -813,8 +676,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     final int count = blackoutDates == null ? 0 : blackoutDates!.length;
     for (int i = 0; i < count; i++) {
       final DateTime blackoutDate = blackoutDates![i];
-      final int blackoutDateIndex =
-          DateTimeHelper.getVisibleDateIndex(visibleDates, blackoutDate);
+      final int blackoutDateIndex = DateTimeHelper.getVisibleDateIndex(visibleDates, blackoutDate);
       if (blackoutDateIndex == -1) {
         continue;
       }
@@ -823,15 +685,11 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
     }
   }
 
-  void _drawWeekNumber(Canvas canvas, Size size, DateTime date,
-      double cellHeight, double yPosition) {
-    final String weekNumber =
-        DateTimeHelper.getWeekNumberOfYear(date).toString();
-    double xPosition = isRTL ? size.width - weekNumberPanelWidth : 0;
-    final TextStyle weekNumberTextStyle =
-        weekNumberStyle.textStyle ?? calendarTheme.weekNumberTextStyle;
-    final TextSpan textSpan =
-        TextSpan(text: weekNumber, style: weekNumberTextStyle);
+  void _drawWeekNumber(Canvas canvas, Size size, DateTime date, double cellHeight, double yPosition) {
+    final String weekNumber = DateTimeHelper.getWeekNumberOfYear(date).toString();
+    double xPosition = 0;
+    final TextStyle weekNumberTextStyle = weekNumberStyle.textStyle ?? calendarTheme.weekNumberTextStyle;
+    final TextSpan textSpan = TextSpan(text: weekNumber, style: weekNumberTextStyle);
 
     _textPainter.text = textSpan;
     _textPainter.textDirection = TextDirection.ltr;
@@ -849,87 +707,61 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
       return;
     }
 
-    final double xPosition = isRTL ? size.width - weekNumberPanelWidth : 0;
-    final double padding = isMobilePlatform ? 5 : 0;
-    final double left = xPosition + padding;
-    final double right = (xPosition + weekNumberPanelWidth) - padding;
-    final Rect rect =
-        Rect.fromLTRB(left, padding, right, size.height - padding);
+    const double padding = 5;
+    const double left = padding;
+    final double right = weekNumberPanelWidth - padding;
+    final Rect rect = Rect.fromLTRB(left, padding, right, size.height - padding);
     _linePainter.style = PaintingStyle.fill;
-    _linePainter.color = weekNumberStyle.backgroundColor ??
-        calendarTheme.weekNumberBackgroundColor!;
-    final RRect roundedRect =
-        RRect.fromRectAndRadius(rect, Radius.circular(padding));
+    _linePainter.color = weekNumberStyle.backgroundColor ?? calendarTheme.weekNumberBackgroundColor!;
+    final RRect roundedRect = RRect.fromRectAndRadius(rect, const Radius.circular(padding));
     canvas.drawRRect(roundedRect, _linePainter);
 
-    if (isMobilePlatform) {
-      double yPosition = cellHeight;
-      _linePainter.strokeWidth = linePadding;
-      _linePainter.color = cellBorderColor ?? calendarTheme.cellBorderColor;
-      for (int i = 0; i < rowCount - 1; i++) {
-        canvas.drawLine(
-            Offset(left, yPosition), Offset(right, yPosition), _linePainter);
-        yPosition += cellHeight;
-      }
+    double yPosition = cellHeight;
+    _linePainter.strokeWidth = linePadding;
+    _linePainter.color = cellBorderColor ?? calendarTheme.cellBorderColor;
+    for (int i = 0; i < rowCount - 1; i++) {
+      canvas.drawLine(Offset(left, yPosition), Offset(right, yPosition), _linePainter);
+      yPosition += cellHeight;
     }
   }
 
   void _drawMonthCells(Canvas canvas, Size size) {
     const double viewPadding = 5;
     const double circlePadding = 4;
-    final double cellWidth =
-        (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
+    final double cellWidth = (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
     final double cellHeight = size.height / rowCount;
-    double xPosition = isRTL
-        ? size.width - cellWidth - weekNumberPanelWidth
-        : weekNumberPanelWidth;
+    double xPosition = weekNumberPanelWidth;
     double yPosition = viewPadding;
     _textPainter.textDirection = TextDirection.ltr;
     _textPainter.textWidthBasis = TextWidthBasis.longestLine;
     _textPainter.textScaleFactor = textScaleFactor;
     final int visibleDatesCount = visibleDates.length;
     final DateTime currentMonthDate = visibleDates[visibleDatesCount ~/ 2];
-    final int nextMonth =
-        DateTimeHelper.getDateTimeValue(getNextMonthDate(currentMonthDate))
-            .month;
-    final int previousMonth =
-        DateTimeHelper.getDateTimeValue(getPreviousMonthDate(currentMonthDate))
-            .month;
+    final int nextMonth = DateTimeHelper.getDateTimeValue(getNextMonthDate(currentMonthDate)).month;
+    final int previousMonth = DateTimeHelper.getDateTimeValue(getPreviousMonthDate(currentMonthDate)).month;
     final DateTime today = DateTime.now();
     bool isCurrentDate;
 
     _linePainter.isAntiAlias = true;
     final TextStyle todayStyle = todayTextStyle ?? calendarTheme.todayTextStyle;
-    final TextStyle currentMonthTextStyle =
-        monthCellStyle.textStyle ?? calendarTheme.activeDatesTextStyle;
-    final TextStyle previousMonthTextStyle =
-        monthCellStyle.trailingDatesTextStyle ??
-            calendarTheme.trailingDatesTextStyle;
-    final TextStyle nextMonthTextStyle = monthCellStyle.leadingDatesTextStyle ??
-        calendarTheme.leadingDatesTextStyle;
-    final TextStyle? blackoutDatesStyle =
-        blackoutDatesTextStyle ?? calendarTheme.blackoutDatesTextStyle;
+    final TextStyle currentMonthTextStyle = monthCellStyle.textStyle ?? calendarTheme.activeDatesTextStyle;
+    final TextStyle previousMonthTextStyle = monthCellStyle.trailingDatesTextStyle ?? calendarTheme.trailingDatesTextStyle;
+    final TextStyle nextMonthTextStyle = monthCellStyle.leadingDatesTextStyle ?? calendarTheme.leadingDatesTextStyle;
+    final TextStyle? blackoutDatesStyle = blackoutDatesTextStyle ?? calendarTheme.blackoutDatesTextStyle;
     final TextStyle disabledTextStyle = TextStyle(
-        color: calendarTheme.brightness == Brightness.light
-            ? Colors.black26
-            : Colors.white38,
+        color: calendarTheme.brightness == Brightness.light ? Colors.black26 : Colors.white38,
         fontSize: 13,
         fontFamily: 'Roboto');
 
     final bool showTrailingLeadingDates =
-        CalendarViewHelper.isLeadingAndTrailingDatesVisible(
-            rowCount, showTrailingAndLeadingDates);
+        CalendarViewHelper.isLeadingAndTrailingDatesVisible(rowCount, showTrailingAndLeadingDates);
 
-    final Color currentMonthBackgroundColor = monthCellStyle.backgroundColor ??
-        calendarTheme.activeDatesBackgroundColor;
+    final Color currentMonthBackgroundColor = monthCellStyle.backgroundColor ?? calendarTheme.activeDatesBackgroundColor;
     final Color nextMonthBackgroundColor =
-        monthCellStyle.leadingDatesBackgroundColor ??
-            calendarTheme.leadingDatesBackgroundColor;
+        monthCellStyle.leadingDatesBackgroundColor ?? calendarTheme.leadingDatesBackgroundColor;
     final Color previousMonthBackgroundColor =
-        monthCellStyle.trailingDatesBackgroundColor ??
-            calendarTheme.trailingDatesBackgroundColor;
-    final Color todayBackgroundColor = monthCellStyle.todayBackgroundColor ??
-        calendarTheme.todayBackgroundColor;
+        monthCellStyle.trailingDatesBackgroundColor ?? calendarTheme.trailingDatesBackgroundColor;
+    final Color todayBackgroundColor = monthCellStyle.todayBackgroundColor ?? calendarTheme.todayBackgroundColor;
 
     TextStyle textStyle = currentMonthTextStyle;
     _drawWeekNumberPanel(canvas, cellHeight);
@@ -938,43 +770,26 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
       final DateTime currentVisibleDate = visibleDates[i];
       if (weekNumberPanelWidth != 0 &&
           !showTrailingAndLeadingDates &&
-          ((i <= DateTime.daysPerWeek &&
-                  visibleDates[DateTime.daysPerWeek].month ==
-                      currentMonthDate.month) ||
+          ((i <= DateTime.daysPerWeek && visibleDates[DateTime.daysPerWeek].month == currentMonthDate.month) ||
               (i > DateTime.daysPerWeek &&
                   i <= (DateTime.daysPerWeek * 2) &&
-                  visibleDates[DateTime.daysPerWeek * 2].month ==
-                      currentMonthDate.month) ||
+                  visibleDates[DateTime.daysPerWeek * 2].month == currentMonthDate.month) ||
               (i > visibleDatesCount - (DateTime.daysPerWeek * 2) &&
                   (i < visibleDatesCount - DateTime.daysPerWeek) &&
-                  visibleDates[visibleDatesCount - (DateTime.daysPerWeek * 2)]
-                          .month ==
-                      currentMonthDate.month) ||
+                  visibleDates[visibleDatesCount - (DateTime.daysPerWeek * 2)].month == currentMonthDate.month) ||
               ((i >= visibleDatesCount - DateTime.daysPerWeek) &&
-                  visibleDates[visibleDatesCount - DateTime.daysPerWeek]
-                          .month ==
-                      currentMonthDate.month)) &&
+                  visibleDates[visibleDatesCount - DateTime.daysPerWeek].month == currentMonthDate.month)) &&
           currentVisibleDate.weekday == DateTime.monday) {
-        _drawWeekNumber(
-            canvas, size, currentVisibleDate, cellHeight, yPosition);
+        _drawWeekNumber(canvas, size, currentVisibleDate, cellHeight, yPosition);
       }
       textStyle = currentMonthTextStyle;
       _linePainter.color = currentMonthBackgroundColor;
       if (currentVisibleDate.month == nextMonth) {
         if (!showTrailingLeadingDates) {
-          if (isRTL) {
-            if (xPosition - 1 < 0) {
-              xPosition = size.width;
-              yPosition += cellHeight;
-            }
-
-            xPosition -= cellWidth;
-          } else {
-            xPosition += cellWidth;
-            if (xPosition + 1 >= size.width) {
-              xPosition = weekNumberPanelWidth;
-              yPosition += cellHeight;
-            }
+          xPosition += cellWidth;
+          if (xPosition + 1 >= size.width) {
+            xPosition = weekNumberPanelWidth;
+            yPosition += cellHeight;
           }
 
           continue;
@@ -984,19 +799,10 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
         _linePainter.color = nextMonthBackgroundColor;
       } else if (currentVisibleDate.month == previousMonth) {
         if (!showTrailingLeadingDates) {
-          if (isRTL) {
-            if (xPosition - 1 < 0) {
-              xPosition = size.width;
-              yPosition += cellHeight;
-            }
-
-            xPosition -= cellWidth;
-          } else {
-            xPosition += cellWidth;
-            if (xPosition + 1 >= size.width) {
-              xPosition = weekNumberPanelWidth;
-              yPosition += cellHeight;
-            }
+          xPosition += cellWidth;
+          if (xPosition + 1 >= size.width) {
+            xPosition = weekNumberPanelWidth;
+            yPosition += cellHeight;
           }
 
           continue;
@@ -1022,8 +828,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
 
       final bool isBlackoutDate = _blackoutDatesIndex.contains(i);
       if (isBlackoutDate) {
-        textStyle = blackoutDatesStyle ??
-            textStyle.copyWith(decoration: TextDecoration.lineThrough);
+        textStyle = blackoutDatesStyle ?? textStyle.copyWith(decoration: TextDecoration.lineThrough);
       }
 
       final TextSpan span = TextSpan(
@@ -1041,15 +846,7 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
       //// for the cells after it, hence to fill the background color we have set
       //// the style s fill.
       _linePainter.style = PaintingStyle.fill;
-      canvas.drawRect(
-          Rect.fromLTWH(
-              xPosition, yPosition - viewPadding, cellWidth, cellHeight),
-          _linePainter);
-
-      if (calendarCellNotifier.value != null && !isBlackoutDate) {
-        _addMouseHovering(canvas, size, cellWidth, cellHeight, xPosition,
-            yPosition - viewPadding);
-      }
+      canvas.drawRect(Rect.fromLTWH(xPosition, yPosition - viewPadding, cellWidth, cellHeight), _linePainter);
 
       if (isCurrentDate) {
         _linePainter.style = PaintingStyle.fill;
@@ -1058,16 +855,10 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
 
         final double textHeight = _textPainter.height / 2;
         canvas.drawCircle(
-            Offset(xPosition + cellWidth / 2,
-                yPosition + circlePadding + textHeight),
-            textHeight + viewPadding,
-            _linePainter);
+            Offset(xPosition + cellWidth / 2, yPosition + circlePadding + textHeight), textHeight + viewPadding, _linePainter);
       }
 
-      _textPainter.paint(
-          canvas,
-          Offset(xPosition + (cellWidth / 2 - _textPainter.width / 2),
-              yPosition + circlePadding));
+      _textPainter.paint(canvas, Offset(xPosition + (cellWidth / 2 - _textPainter.width / 2), yPosition + circlePadding));
 
       if (weekNumberPanelWidth != 0 &&
           currentVisibleDate.weekday == DateTime.monday &&
@@ -1075,100 +866,44 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
               (!showTrailingAndLeadingDates &&
                   (i >= (DateTime.daysPerWeek * 2)) &&
                   (i <= visibleDatesCount - (DateTime.daysPerWeek * 2))))) {
-        _drawWeekNumber(
-            canvas, size, currentVisibleDate, cellHeight, yPosition);
+        _drawWeekNumber(canvas, size, currentVisibleDate, cellHeight, yPosition);
       }
 
-      if (isRTL) {
-        if (xPosition - 1 < 0) {
-          xPosition = size.width - weekNumberPanelWidth;
-          yPosition += cellHeight;
-        }
-
-        xPosition -= cellWidth;
-      } else {
-        xPosition += cellWidth;
-        if (xPosition + 1 >= size.width) {
-          xPosition = weekNumberPanelWidth;
-          yPosition += cellHeight;
-        }
+      xPosition += cellWidth;
+      if (xPosition + 1 >= size.width) {
+        xPosition = weekNumberPanelWidth;
+        yPosition += cellHeight;
       }
     }
 
-    _drawVerticalAndHorizontalLines(
-        canvas, size, yPosition, xPosition, cellHeight, cellWidth);
+    _drawVerticalAndHorizontalLines(canvas, size, yPosition, xPosition, cellHeight, cellWidth);
   }
 
-  void _addMouseHovering(Canvas canvas, Size size, double cellWidth,
-      double cellHeight, double xPosition, double yPosition) {
-    if (xPosition <= calendarCellNotifier.value!.dx &&
-        xPosition + cellWidth >= calendarCellNotifier.value!.dx &&
-        yPosition <= calendarCellNotifier.value!.dy &&
-        yPosition + cellHeight >= calendarCellNotifier.value!.dy) {
-      _linePainter.style = PaintingStyle.stroke;
-      _linePainter.strokeWidth = 2;
-      _linePainter.color = calendarTheme.selectionBorderColor!.withOpacity(0.4);
-      canvas.drawRect(
-          Rect.fromLTWH(
-              xPosition == 0 ? xPosition + linePadding : xPosition,
-              yPosition,
-              (xPosition + cellWidth).round() >= size.width
-                  ? cellWidth - linePadding - 1
-                  : cellWidth - 1,
-              (yPosition + cellHeight).round() >= size.height.round()
-                  ? cellHeight - 1 - linePadding
-                  : cellHeight - 1),
-          _linePainter);
-    }
-  }
-
-  void _drawVerticalAndHorizontalLines(Canvas canvas, Size size,
-      double yPosition, double xPosition, double cellHeight, double cellWidth) {
+  void _drawVerticalAndHorizontalLines(
+      Canvas canvas, Size size, double yPosition, double xPosition, double cellHeight, double cellWidth) {
     yPosition = cellHeight;
     _linePainter.strokeWidth = linePadding;
     _linePainter.color = cellBorderColor ?? calendarTheme.cellBorderColor;
-    xPosition = isRTL ? 0 : weekNumberPanelWidth;
-    final double finalXPosition =
-        isRTL ? size.width - weekNumberPanelWidth : size.width;
-    canvas.drawLine(Offset(xPosition, linePadding),
-        Offset(finalXPosition, linePadding), _linePainter);
+    xPosition = weekNumberPanelWidth;
+    final double finalXPosition = size.width;
+    canvas.drawLine(Offset(xPosition, linePadding), Offset(finalXPosition, linePadding), _linePainter);
     for (int i = 0; i < rowCount - 1; i++) {
-      canvas.drawLine(
-          Offset(
-              isMobilePlatform
-                  ? isRTL
-                      ? 0
-                      : weekNumberPanelWidth
-                  : 0,
-              yPosition),
-          Offset(
-              isMobilePlatform
-                  ? isRTL
-                      ? size.width - weekNumberPanelWidth
-                      : size.width
-                  : size.width,
-              yPosition),
-          _linePainter);
+      canvas.drawLine(Offset(weekNumberPanelWidth, yPosition), Offset(size.width, yPosition), _linePainter);
       yPosition += cellHeight;
     }
 
-    canvas.drawLine(Offset(0, size.height - linePadding),
-        Offset(size.width, size.height - linePadding), _linePainter);
-    xPosition =
-        weekNumberPanelWidth != 0 && !isRTL ? weekNumberPanelWidth : cellWidth;
-    canvas.drawLine(const Offset(linePadding, 0),
-        Offset(linePadding, size.height), _linePainter);
+    canvas.drawLine(Offset(0, size.height - linePadding), Offset(size.width, size.height - linePadding), _linePainter);
+    xPosition = weekNumberPanelWidth != 0 ? weekNumberPanelWidth : cellWidth;
+    canvas.drawLine(const Offset(linePadding, 0), Offset(linePadding, size.height), _linePainter);
     final int count = weekNumberPanelWidth == 0 ? 6 : 7;
     for (int i = 0; i < count; i++) {
-      canvas.drawLine(
-          Offset(xPosition, 0), Offset(xPosition, size.height), _linePainter);
+      canvas.drawLine(Offset(xPosition, 0), Offset(xPosition, size.height), _linePainter);
       xPosition += cellWidth;
     }
   }
 
   String _getAccessibilityText(DateTime date, int index) {
-    final String accessibilityText =
-        DateFormat('EEE, dd/MMMM/yyyy').format(date).toString();
+    final String accessibilityText = DateFormat('EEE, dd/MMMM/yyyy').format(date).toString();
     if (_blackoutDatesIndex.contains(index)) {
       return accessibilityText + ', Blackout date';
     }
@@ -1181,38 +916,27 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
   }
 
   List<CustomPainterSemantics> _getSemanticsBuilder(Size size) {
-    final List<CustomPainterSemantics> semanticsBuilder =
-        <CustomPainterSemantics>[];
-    final double cellWidth =
-        (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
-    double left = isRTL
-            ? size.width - cellWidth - weekNumberPanelWidth
-            : weekNumberPanelWidth,
-        top = 0;
+    final List<CustomPainterSemantics> semanticsBuilder = <CustomPainterSemantics>[];
+    final double cellWidth = (size.width - weekNumberPanelWidth) / DateTime.daysPerWeek;
+    double left = weekNumberPanelWidth, top = 0;
     final double cellHeight = size.height / rowCount;
     final bool showTrailingLeadingDates =
-        CalendarViewHelper.isLeadingAndTrailingDatesVisible(
-            rowCount, showTrailingAndLeadingDates);
+        CalendarViewHelper.isLeadingAndTrailingDatesVisible(rowCount, showTrailingAndLeadingDates);
     final int currentMonth = visibleDates[visibleDates.length ~/ 2].month;
     for (int i = 0; i < visibleDates.length; i++) {
       final DateTime currentVisibleDate = visibleDates[i];
-      if (weekNumberPanelWidth != 0 &&
-          currentVisibleDate.weekday == DateTime.monday) {
-        final int weekNumber =
-            DateTimeHelper.getWeekNumberOfYear(currentVisibleDate);
+      if (weekNumberPanelWidth != 0 && currentVisibleDate.weekday == DateTime.monday) {
+        final int weekNumber = DateTimeHelper.getWeekNumberOfYear(currentVisibleDate);
         semanticsBuilder.add(CustomPainterSemantics(
-            rect: Rect.fromLTWH(isRTL ? (size.width - left - cellWidth) : 0,
-                top, weekNumberPanelWidth, cellHeight),
+            rect: Rect.fromLTWH(0, top, weekNumberPanelWidth, cellHeight),
             properties: SemanticsProperties(
               label: 'week' + weekNumber.toString(),
               textDirection: TextDirection.ltr,
             )));
       }
-      if (showTrailingLeadingDates ||
-          currentMonth == currentVisibleDate.month) {
+      if (showTrailingLeadingDates || currentMonth == currentVisibleDate.month) {
         semanticsBuilder.add(CustomPainterSemantics(
-          rect: Rect.fromLTWH(isRTL ? size.width - left - cellWidth : left, top,
-              cellWidth, cellHeight),
+          rect: Rect.fromLTWH(left, top, cellWidth, cellHeight),
           properties: SemanticsProperties(
             label: _getAccessibilityText(currentVisibleDate, i),
             textDirection: TextDirection.ltr,
@@ -1231,6 +955,5 @@ class _MonthViewRenderObject extends CustomCalendarRenderObject {
   }
 
   @override
-  List<CustomPainterSemantics> Function(Size size) get semanticsBuilder =>
-      _getSemanticsBuilder;
+  List<CustomPainterSemantics> Function(Size size) get semanticsBuilder => _getSemanticsBuilder;
 }

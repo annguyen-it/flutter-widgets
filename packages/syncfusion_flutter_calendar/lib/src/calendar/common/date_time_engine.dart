@@ -163,13 +163,7 @@ class DateTimeHelper {
       DateTime minDate,
       DateTime maxDate,
       List<DateTime> visibleDates,
-      List<int> nonWorkingDays,
-      [bool isRTL = false]) {
-    if (isRTL) {
-      return canMoveToNextView(calendarView, numberOfWeeksInView, minDate,
-          maxDate, visibleDates, nonWorkingDays);
-    }
-
+      List<int> nonWorkingDays) {
     switch (calendarView) {
       case CalendarView.month:
         {
@@ -237,13 +231,7 @@ class DateTimeHelper {
       DateTime minDate,
       DateTime maxDate,
       List<DateTime> visibleDates,
-      List<int> nonWorkingDays,
-      [bool isRTL = false]) {
-    if (isRTL) {
-      return canMoveToPreviousView(calendarView, numberOfWeeksInView, minDate,
-          maxDate, visibleDates, nonWorkingDays);
-    }
-
+      List<int> nonWorkingDays) {
     switch (calendarView) {
       case CalendarView.month:
         {
