@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
@@ -542,45 +541,6 @@ class CalendarViewHelper {
   static bool isSameOrAfterDateTime(DateTime firstDate, DateTime date) {
     return CalendarViewHelper.isSameTimeSlot(firstDate, date) ||
         firstDate.isBefore(date);
-  }
-
-  /// Method to switch the views based on the keyboard interaction.
-  static KeyEventResult handleViewSwitchKeyBoardEvent(RawKeyEvent event,
-      CalendarController controller, List<CalendarView>? allowedViews) {
-    /// Ctrl + and Ctrl - used by browser to zoom the page, hence as referred
-    /// EJ2 scheduler, we have used alt + numeric to switch between views in
-    /// calendar web and windows
-    CalendarView view = controller.view!;
-    if (event.isAltPressed) {
-      if (event.logicalKey == LogicalKeyboardKey.digit1) {
-        view = CalendarView.day;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit2) {
-        view = CalendarView.week;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit3) {
-        view = CalendarView.workWeek;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit4) {
-        view = CalendarView.month;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit5) {
-        view = CalendarView.timelineDay;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit6) {
-        view = CalendarView.timelineWeek;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit7) {
-        view = CalendarView.timelineWorkWeek;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit8) {
-        view = CalendarView.timelineMonth;
-      } else if (event.logicalKey == LogicalKeyboardKey.digit9) {
-        view = CalendarView.schedule;
-      }
-    }
-
-    if (allowedViews != null &&
-        allowedViews.isNotEmpty &&
-        !allowedViews.contains(view)) {
-      return KeyEventResult.ignored;
-    }
-
-    controller.view = view;
-    return KeyEventResult.handled;
   }
 
   /// Check the showWeekNumber is true or not and returns the position.

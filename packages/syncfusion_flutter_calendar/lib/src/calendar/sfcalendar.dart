@@ -4362,10 +4362,8 @@ class _SfCalendarState extends State<SfCalendar> with SingleTickerProviderStateM
       }
     }
 
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      onKey: _onKeyDown,
-      child: Stack(children: <Widget>[
+    return Stack(
+      children: <Widget>[
         Positioned(
           top: 0,
           right: 0,
@@ -4446,7 +4444,7 @@ class _SfCalendarState extends State<SfCalendar> with SingleTickerProviderStateM
                 ))),
         _addDatePicker(widget.headerHeight),
         _getCalendarViewPopup(),
-      ]),
+      ],
     );
   }
 
@@ -5180,20 +5178,7 @@ class _SfCalendarState extends State<SfCalendar> with SingleTickerProviderStateM
               }))));
     }
 
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      onKey: _onKeyDown,
-      child: Stack(children: children),
-    );
-  }
-
-  /// Method to handle keyboard navigation for schedule view in calendar.
-  void _onKeyDown(RawKeyEvent event) {
-    if (event.runtimeType != RawKeyDownEvent) {
-      return;
-    }
-
-    CalendarViewHelper.handleViewSwitchKeyBoardEvent(event, _controller, widget.allowedViews);
+    return Stack(children: children);
   }
 
   Future<void> loadMoreAppointments(DateTime visibleStartDate, DateTime visibleEndDate) async {
@@ -6247,9 +6232,19 @@ class _CalendarHeaderViewState extends State<_CalendarHeaderView> {
       maxHeaderHeight = maxHeaderHeight != 0 && maxHeaderHeight <= widget.height ? maxHeaderHeight : widget.height;
 
       /// Render allowed views icon on mobile view.
-      calendarViewIcon = _getCalendarViewWidget(headerBackgroundColor, false, calendarViewWidth, maxHeaderHeight, style,
-          arrowColor, headerTextColor, widget.view, false, highlightColor, defaultCalendarViewTextSize,
-          semanticLabel: 'CalendarView');
+      calendarViewIcon = _getCalendarViewWidget(
+        headerBackgroundColor,
+        calendarViewWidth,
+        maxHeaderHeight,
+        style,
+        arrowColor,
+        headerTextColor,
+        widget.view,
+        false,
+        highlightColor,
+        defaultCalendarViewTextSize,
+        semanticLabel: 'CalendarView',
+      );
     }
 
     headerWidth = widget.width - calendarViewWidth - todayIconWidth - totalArrowWidth;
@@ -6516,7 +6511,6 @@ class _CalendarHeaderViewState extends State<_CalendarHeaderView> {
 
   Widget _getCalendarViewWidget(
       Color headerBackgroundColor,
-      bool isNeedIcon,
       double width,
       double height,
       TextStyle style,
@@ -6545,11 +6539,8 @@ class _CalendarHeaderViewState extends State<_CalendarHeaderView> {
               if (!widget.enableInteraction) {
                 return;
               }
-              if (isNeedIcon) {
-                widget.viewChangeNotifier.value = !widget.viewChangeNotifier.value;
-              } else {
-                widget.controller.view = view;
-              }
+
+              widget.viewChangeNotifier.value = !widget.viewChangeNotifier.value;
             },
             child: Semantics(
                 label: semanticLabel ?? text,
